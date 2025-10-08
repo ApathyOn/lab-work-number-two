@@ -1,70 +1,86 @@
 # main.py
-from base import init_db
 from exhibit import Exhibit
 from article import Article
-from visitor import Visitor
+from db import init_db, save_totals, get_totals
 from docx import Document
 from openpyxl import Workbook
 
-def export_report(items, visitors):
-    # Экспорт в DOCX
-    doc = Document()
-    doc.add_heading('Отчёт: Виртуальный музей', 0)
-    doc.add_heading('Популярность объектов', level=1)
-    for item in items:
-        doc.add_paragraph(str(item))
-    doc.add_heading('Статистика посетителей', level=1)
-    for v in visitors:
-        doc.add_paragraph(str(v))
-    doc.save('museum_report.docx')
+def export_report(total_exhibits, total_articles):
+    total_all = total_exhibits + total_articles
 
-    # Экспорт в XLSX
+    # DOCX
+    doc = Document()
+    doc.add_heading('Итоговый отчёт: Виртуальный музей', 0)
+    doc.add_paragraph(f"Общее число людей, посмотревших ЭКСПОНАТЫ: {total_exhibits}")
+    doc.add_paragraph(f"Общее число людей, посмотревших СТАТЬИ:    {total_articles}")
+    doc.add_paragraph(f"ВСЕГО:                                    {total_all}")
+    doc.save('museum_summary_report.docx')
+
+    # XLSX
     wb = Workbook()
     ws = wb.active
-    ws.title = "Популярность"
-    ws.append(["Тип", "Название", "Просмотры", "Ср. время (сек)"])
-    for item in items:
-        views, avg = item.get_stats()
-        ws.append([item.get_type_name(), item.title, views, round(avg, 1)])
-    
-    ws2 = wb.create_sheet("Посетители")
-    ws2.append(["ID", "Имя", "Просмотров", "Общее время (сек)"])
-    for v in visitors:
-        views, total, _ = v.get_stats()
-        ws2.append([v.id, v.name, views, round(total, 1)])
-    
-    wb.save('museum_report.xlsx')
+    ws.append(["Категория", "Количество человек"])
+    ws.append(["Экспонаты", total_exhibits])
+    ws.append(["Статьи", total_articles])
+    ws.append(["Всего", total_all])
+    wb.save('museum_summary_report.xlsx')
 
 def main():
     init_db()
-    print("=== Виртуальный музей (Well-done, 5 файлов) ===\n")
+    total_exhibits = 0
+    total_articles = 0
 
-    # Создание объектов
-    exhibit = Exhibit("Золотая маска Тутанхамона")
-    article = Article("Тайны древнеегипетских гробниц")
+    print("🏛️ Ввод данных о просмотрах")
+    print("Введите информацию по каждому объекту. Завершите ввод командой 'стоп'.\n")
 
-    visitor1 = Visitor("V001", "Анна")
-    visitor2 = Visitor("V002", "Борис")
+    while True:
+        choice = input("Тип объекта (1 — Экспонат, 2 — Статья, 'стоп' — завершить): ").strip()
+        if choice.lower() in ('стоп', 'stop', 'q'):
+            break
+        if choice not in ('1', '2'):
+            print("Введите 1, 2 или 'стоп'.")
+            continue
 
-    # Симуляция просмотров
-    visitor1.view(exhibit, 45.0)
-    visitor1.view(article, 120.0)
-    visitor2.view(exhibit, 60.0)
-    visitor2.view(article, 90.0)
+        title = input("Название: ").strip()
+        if not title:
+            print("Название не может быть пустым.")
+            continue
 
-    # Вывод результатов
-    print("📊 Популярность:")
-    print(exhibit)
-    print(article)
+        try:
+            views = int(input("Сколько человек посмотрело? "))
+            if views < 0:
+                print("Число не может быть отрицательным.")
+                continue
+        except ValueError:
+            print("Введите целое число.")
+            continue
 
-    print("\n👥 Посетители:")
-    print(visitor1)
-    print(visitor2)
+        # Создаём объект (для демонстрации ООП)
+        if choice == "1":
+            item = Exhibit(title, views)
+            total_exhibits += views
+        else:
+            item = Article(title, views)
+            total_articles += views
 
-    # Сохранение отчёта
-    export_report([exhibit, article], [visitor1, visitor2])
-    print("\n✅ Отчёт сохранён: museum_report.docx, museum_report.xlsx")
-    print("✅ Данные сохранены в: museum.db")
+        print(f"✅ Учтено: {item}\n")
+
+    # Сохраняем ТОЛЬКО итоги в БД
+    save_totals(total_exhibits, total_articles)
+
+    # Вывод результата
+    total_all = total_exhibits + total_articles
+    print("\n" + "="*50)
+    print("📊 ИТОГОВАЯ СТАТИСТИКА")
+    print("="*50)
+    print(f"Экспонаты: {total_exhibits} человек")
+    print(f"Статьи:    {total_articles} человек")
+    print(f"Всего:     {total_all} человек")
+
+    # Экспорт отчёта
+    export_report(total_exhibits, total_articles)
+    print("\n✅ Отчёт сохранён: museum_summary_report.docx, museum_summary_report.xlsx")
+    print("✅ Итоги сохранены в: museum_summary.db")
 
 if __name__ == "__main__":
     main()

@@ -1,6 +1,6 @@
 # article.py
-from base import Viewable
+from base import MuseumItem
 
-class Article(Viewable):
+class Article(MuseumItem):
     def get_type_name(self):
         return "Статья"

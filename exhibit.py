@@ -1,6 +1,6 @@
 # exhibit.py
-from base import Viewable
+from base import MuseumItem
 
-class Exhibit(Viewable):
+class Exhibit(MuseumItem):
     def get_type_name(self):
         return "Экспонат"
