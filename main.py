@@ -1,9 +1,10 @@
 # main.py
 from exhibit import Exhibit
 from article import Article
-from db import init_db, save_totals, get_totals
+from db import init_db, save_totals, get_totals, DEFAULT_DB_PATH
 from docx import Document
 from openpyxl import Workbook
+
 
 def export_report(total_exhibits, total_articles):
     total_all = total_exhibits + total_articles
