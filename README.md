@@ -18,11 +18,13 @@
 
 2. Установите зависимости:
    ```bash
-pip install -r requirements.txt
+   pip install -r requirements.txt
+
 Запустите основную программу:
-```bash
-python main.py
-(Опционально) Запустите тесты:
+   ```bash
+   python main.py
+
+Запустите тесты:
 pytest
 
 ---
