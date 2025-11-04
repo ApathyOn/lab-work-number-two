@@ -1,4 +1,3 @@
-# article.py
 from base import MuseumItem
 
 class Article(MuseumItem):

@@ -1,4 +1,3 @@
-# exhibit.py
 from base import MuseumItem
 
 class Exhibit(MuseumItem):

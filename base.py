@@ -1,17 +1,17 @@
-# base.py
 from abc import ABC, abstractmethod
 
 class MuseumItem(ABC):
-    def __init__(self, title, views):
+    def init(self, title, rating=None):
         self.title = title
-        self.views = views
+        self.rating = rating
 
     @abstractmethod
     def get_type_name(self):
         pass
 
-    def __str__(self):
-        return f"{self.get_type_name()} «{self.title}» — {self.views} человек"
+    def str(self):
+        rating_str = f" — {self.rating}/10" if self.rating is not None else " — оценка не выставлена"
+        return f"{self.get_type_name()} «{self.title}»{rating_str}"
 
-    def __repr__(self):
-        return f"{self.__class__.__name__}(title='{self.title}', views={self.views})"
+    def repr(self):
+        return f"{self.class.name}(title='{self.title}', rating={self.rating})"

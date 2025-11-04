@@ -1,87 +1,52 @@
-# main.py
-from exhibit import Exhibit
-from article import Article
-from db import init_db, save_totals, get_totals, DEFAULT_DB_PATH
-from docx import Document
-from openpyxl import Workbook
-
-
-def export_report(total_exhibits, total_articles):
-    total_all = total_exhibits + total_articles
-
-    # DOCX
-    doc = Document()
-    doc.add_heading('Итоговый отчёт: Виртуальный музей', 0)
-    doc.add_paragraph(f"Общее число людей, посмотревших ЭКСПОНАТЫ: {total_exhibits}")
-    doc.add_paragraph(f"Общее число людей, посмотревших СТАТЬИ:    {total_articles}")
-    doc.add_paragraph(f"ВСЕГО:                                    {total_all}")
-    doc.save('museum_summary_report.docx')
-
-    # XLSX
-    wb = Workbook()
-    ws = wb.active
-    ws.append(["Категория", "Количество человек"])
-    ws.append(["Экспонаты", total_exhibits])
-    ws.append(["Статьи", total_articles])
-    ws.append(["Всего", total_all])
-    wb.save('museum_summary_report.xlsx')
+from db import init_db, get_all_items, add_rating
 
 def main():
     init_db()
-    total_exhibits = 0
-    total_articles = 0
-
-    print("🏛️ Ввод данных о просмотрах")
-    print("Введите информацию по каждому объекту. Завершите ввод командой 'стоп'.\n")
+    print("Добро пожаловать в Виртуальный музей!")
+    print("Оцените объекты от 0 до 10.\n")
 
     while True:
-        choice = input("Тип объекта (1 — Экспонат, 2 — Статья, 'стоп' — завершить): ").strip()
+        items = get_all_items()
+        print("=" * 85)
+        print(f"{'ID':<4} {'Тип':<10} {'Название':<45} {'Средняя':<10} {'Кол-во'}")
+        print("=" * 85)
+        for item_id, type_, title, avg_rating, num_ratings, position in items:
+            print(f"{item_id:<4} {type_:<10} {title:<45} {avg_rating:>7.2f} {num_ratings:>7}")
+        print("=" * 85)
+
+        choice = input("\nВведите ID объекта для оценки (или 'стоп' для выхода): ").strip()
         if choice.lower() in ('стоп', 'stop', 'q'):
             break
-        if choice not in ('1', '2'):
-            print("Введите 1, 2 или 'стоп'.")
-            continue
-
-        title = input("Название: ").strip()
-        if not title:
-            print("Название не может быть пустым.")
-            continue
 
         try:
-            views = int(input("Сколько человек посмотрело? "))
-            if views < 0:
-                print("Число не может быть отрицательным.")
-                continue
+            item_id = int(choice)
         except ValueError:
-            print("Введите целое число.")
+            print("Введите корректный номер ID.")
             continue
 
-        # Создаём объект (для демонстрации ООП)
-        if choice == "1":
-            item = Exhibit(title, views)
-            total_exhibits += views
-        else:
-            item = Article(title, views)
-            total_articles += views
+        valid_ids = [row[0] for row in items]
+        if item_id not in valid_ids:
+            print("Объект с таким ID не найден.")
+            continue
 
-        print(f"✅ Учтено: {item}\n")
+        rating_input = input("Введите оценку (0–10): ").strip()
+        try:
+            rating = int(rating_input)
+            if not (0 <= rating <= 10):
+                print("Оценка должна быть от 0 до 10.")
+                continue
+        except ValueError:
+            print("Введите число.")
+            continue
 
-    # Сохраняем ТОЛЬКО итоги в БД
-    save_totals(total_exhibits, total_articles)
+        add_rating(item_id, rating)
+        print("Оценка сохранена и таблица обновлена!\n")
 
-    # Вывод результата
-    total_all = total_exhibits + total_articles
-    print("\n" + "="*50)
-    print("📊 ИТОГОВАЯ СТАТИСТИКА")
-    print("="*50)
-    print(f"Экспонаты: {total_exhibits} человек")
-    print(f"Статьи:    {total_articles} человек")
-    print(f"Всего:     {total_all} человек")
-
-    # Экспорт отчёта
-    export_report(total_exhibits, total_articles)
-    print("\n✅ Отчёт сохранён: museum_summary_report.docx, museum_summary_report.xlsx")
-    print("✅ Итоги сохранены в: museum_summary.db")
+    print("\nИтоговая таблица:")
+    for item_id, type_, title, avg_rating, num_ratings, position in get_all_items():
+        print(f"{type_:<10} | {title:<45} | Средняя: {avg_rating:>5.2f} ({num_ratings} оценок)")
+    print("=" * 85)
+    print("Работа завершена!")
 
 if __name__ == "__main__":
     main()
