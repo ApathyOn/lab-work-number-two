@@ -13,5 +13,5 @@ class MuseumItem(ABC):
         rating_str = f" — {self.rating}/10" if self.rating is not None else " — оценка не выставлена"
         return f"{self.get_type_name()} «{self.title}»{rating_str}"
 
-    def repr(self):
-        return f"{self.class.name}(title='{self.title}', rating={self.rating})"
+    def __repr__(self):
+        return f"{self.__class__.__name__}(title='{self.title}', rating={self.rating})"

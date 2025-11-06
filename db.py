@@ -10,10 +10,6 @@ def get_connection(db_path: Optional[str] = None) -> sqlite3.Connection:
 
 
 def init_db(db_path: Optional[str] = None) -> None:
-    """
-    Создаёт таблицы (если отсутствуют) и заполняет стартовые данные.
-    Добавлена колонка position — целое, 1 = лучший (на вершине).
-    """
     conn = get_connection(db_path)
     cur = conn.cursor()
 
@@ -64,12 +60,8 @@ def _get_item_exists(cur: sqlite3.Cursor, item_id: int) -> bool:
 
 
 def add_rating(item_id: int, rating: int, db_path: Optional[str] = None) -> None:
-    """
-    Добавляет новую оценку и обновляет avg_rating и num_ratings для объекта.
-    Затем пересчитывает позиции (position) для всех записей.
-    """
-    if not isinstance(rating, int):
-        raise TypeError("rating должен быть int")
+    if not isinstance(rating, (int, float)):
+        raise TypeError("rating должен быть числом (int или float)")
     if rating < 0 or rating > 10:
         raise ValueError("rating должен быть в диапазоне 0..10")
 
@@ -100,11 +92,6 @@ def add_rating(item_id: int, rating: int, db_path: Optional[str] = None) -> None
 
 
 def recompute_positions(db_path: Optional[str] = None) -> None:
-    """
-    Пересчитывает поле position для всех строк в items согласно
-    ORDER BY avg_rating DESC, id ASC. Номер позиции начинается с 1.
-    Выполняется в транзакции.
-    """
     conn = get_connection(db_path)
     cur = conn.cursor()
 
@@ -122,10 +109,6 @@ def recompute_positions(db_path: Optional[str] = None) -> None:
 
 
 def get_all_items(db_path: Optional[str] = None):
-    """
-    Возвращает все объекты, упорядоченные по position ASC (1 = лучший).
-    Всегда использует ORDER BY position, это гарантирует ожидаемый вывод.
-    """
     conn = get_connection(db_path)
     cur = conn.cursor()
     cur.execute("SELECT id, type, title, avg_rating, num_ratings, position FROM items ORDER BY position ASC")
@@ -135,10 +118,6 @@ def get_all_items(db_path: Optional[str] = None):
 
 
 def recalculate_all_avg(db_path: Optional[str] = None) -> None:
-    """
-    Пересчитывает avg_rating и num_ratings для всех items на основе таблицы ratings,
-    затем пересчитывает позиции.
-    """
     conn = get_connection(db_path)
     cur = conn.cursor()
 
@@ -160,10 +139,6 @@ def recalculate_all_avg(db_path: Optional[str] = None) -> None:
 
 
 def verify_and_fix(db_path: Optional[str] = None) -> None:
-    """
-    Сравнивает значения avg_rating/num_ratings в items с вычисленными по ratings.
-    Исправляет несоответствия и пересчитывает позиции.
-    """
     conn = get_connection(db_path)
     cur = conn.cursor()
 
