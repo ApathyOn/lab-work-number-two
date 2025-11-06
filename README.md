@@ -1,4 +1,3 @@
-"""
 # Лабораторная работа №2 — Модули, пакеты и ООП в Python
 
 ## Описание проекта
@@ -15,7 +14,7 @@
 - Данные сохраняются в базу SQLite и экспортируются в отчёты
 
 ## Структура проекта
-
+````
 
 lab-work-number-two/
 ├── main.py
@@ -31,7 +30,7 @@ lab-work-number-two/
 ├── museum_summary_report.docx
 ├── museum_summary_report.xlsx
 └── README.md
-
+````
 ## Установка и запуск
 
 ### Вариант 1 — без Docker
